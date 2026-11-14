@@ -6,7 +6,20 @@ import { fileURLToPath } from "node:url";
 import { createServer as createViteServer } from "vite";
 import { DEMO_GRANTS } from "./server/demoData.ts";
 import { GEMINI_ANALYSIS_MODEL, isGeminiConfigured } from "./server/gemini.ts";
-import type { GrantRecord, PipelineStage, StaffStatus, AwardOutcome } from "./src/types/grant.ts";
+import {
+  GEMINI_DISCOVERY_MODEL,
+  getCurrentDiscoveryJob,
+  getDiscoveryJob,
+  getLastCompleteDiscoveryJob,
+  startDiscoveryJob,
+} from "./server/discovery.ts";
+import type {
+  GrantRecord,
+  PipelineStage,
+  StaffStatus,
+  AwardOutcome,
+  TechMomsProfile,
+} from "./src/types/grant.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -136,15 +149,49 @@ async function startServer() {
     });
   });
 
-  // Honest Phase-1 endpoint: explains planned automated discovery without inventing live results
+  // Live discovery: Gemini searches the web, then each official page is checked server-side.
+  app.post("/api/discovery/run", (_req, res) => {
+    if (!isGeminiConfigured()) {
+      res.status(400).json({ error: "GEMINI_API_KEY is not configured on the server." });
+      return;
+    }
+    try {
+      const profile = JSON.parse(fs.readFileSync(profilePath, "utf-8")) as TechMomsProfile;
+      res.status(202).json({ job: startDiscoveryJob(profile) });
+    } catch (error) {
+      res.status(500).json({
+        error: "Unable to start discovery.",
+        details: error instanceof Error ? error.message : String(error),
+      });
+    }
+  });
+
+  // `job` is the last finished run (possibly saved from an earlier day). `current` is a run that
+  // is in progress or just failed, so a failed refresh never hides the saved results.
+  app.get("/api/discovery/latest", (_req, res) => {
+    res.json({
+      job: getLastCompleteDiscoveryJob() ?? null,
+      current: getCurrentDiscoveryJob() ?? null,
+    });
+  });
+
+  app.get("/api/discovery/jobs/:jobId", (req, res) => {
+    const job = getDiscoveryJob(req.params.jobId);
+    if (!job) {
+      res.status(404).json({ error: "Discovery job not found" });
+      return;
+    }
+    res.json({ job });
+  });
+
   app.post("/api/discovery/preview", (_req, res) => {
     try {
       const profile = JSON.parse(fs.readFileSync(profilePath, "utf-8"));
       res.json({
-        live_discovery_enabled: false,
-        phase: "v1_synthetic_demo",
+        live_discovery_enabled: isGeminiConfigured(),
+        phase: "v2_live_discovery",
         message:
-          "Automated web discovery and Gemini-powered eligibility evaluation are scheduled for Phase 2. This workspace currently displays synthetic demo records only.",
+          "Live discovery searches the web with Gemini and checks each official page. Results are candidates only: staff must review every grant before anyone applies. Eligibility scoring is the next phase.",
         configured_search_topics: profile.grant_preferences?.search_topics ?? [],
         geography_constraints: {
           states: profile.service_area?.states?.value ?? ["Utah"],
@@ -159,7 +206,7 @@ async function startServer() {
             profile.grant_preferences?.maximum_application_effort_hours?.value ?? 50,
         },
         server_gemini_ready: isGeminiConfigured(),
-        planned_model: GEMINI_ANALYSIS_MODEL,
+        planned_model: GEMINI_DISCOVERY_MODEL,
       });
     } catch (error) {
       res.status(500).json({

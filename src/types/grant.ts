@@ -161,6 +161,50 @@ export interface GrantRecord {
   };
 }
 
+// ---- Live discovery (Gemini + Google Search) -------------------------------
+
+export type CandidateVerification =
+  | "page_confirmed" // official page fetched and the grant name was found on it
+  | "page_name_not_found" // page reachable, but grant name not found (PDF, JS page, or wrong URL)
+  | "page_blocked" // site refused or timed out our automatic check; a person must open the link
+  | "unreachable"; // link looks broken (404, or the domain does not exist)
+
+export interface GrantCandidate {
+  candidate_id: string;
+  name: string;
+  funder: string;
+  official_url: string;
+  why_relevant: string;
+  status_hint: "open" | "upcoming" | "recurring_not_yet_open" | "unknown";
+  deadline_text: string | null;
+  award_text: string | null;
+  matched_topics: string[];
+  /** True when the URL's site also appeared in Google Search grounding sources. */
+  in_search_results: boolean;
+  verification: CandidateVerification;
+  verification_note: string;
+  discovered_at: string;
+}
+
+export interface DiscoveryQueryResult {
+  lens: string;
+  topics: string[];
+  raw_candidates: number;
+  error: string | null;
+}
+
+export interface DiscoveryJob {
+  job_id: string;
+  status: "running" | "complete" | "failed";
+  started_at: string;
+  finished_at: string | null;
+  model: string;
+  progress: { stage: string; message: string };
+  queries: DiscoveryQueryResult[];
+  candidates: GrantCandidate[];
+  error: string | null;
+}
+
 export type ProvenanceType = "public_website" | "synthetic_demo" | "unverified";
 
 export interface ProvenancedValue<T> {

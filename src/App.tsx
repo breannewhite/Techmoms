@@ -191,7 +191,7 @@ export default function App() {
           <div className="text-xs text-slate-600 space-y-1">
             <div className="font-semibold text-slate-800">Synthetic Demo Workspace</div>
             <p className="leading-relaxed text-slate-500">
-              Showing simulated grants for Tech-Moms. Live search and Gemini evaluation will be added in the next phase.
+              Showing simulated grants for Tech-Moms. Use Run Grant Search to find real grant candidates with Gemini. Eligibility evaluation is the next phase.
             </p>
           </div>
           <button
