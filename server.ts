@@ -72,6 +72,7 @@ async function startServer() {
       internal_notes?: string | null;
       staff_status?: StaffStatus;
       dismissed_reason?: string | null;
+      is_saved?: boolean;
       award_outcome?: AwardOutcome;
       amount_awarded_usd?: number | null;
     };
@@ -84,6 +85,10 @@ async function startServer() {
       dashboard: {
         ...current.dashboard,
         staff_status: body.staff_status ?? current.dashboard.staff_status,
+        is_saved:
+          typeof body.is_saved === "boolean"
+            ? body.is_saved
+            : current.dashboard.is_saved ?? current.dashboard.staff_status === "saved",
         dismissed_reason:
           body.dismissed_reason !== undefined
             ? body.dismissed_reason

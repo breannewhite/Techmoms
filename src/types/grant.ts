@@ -127,6 +127,8 @@ export interface GrantRecord {
     category: string | null;
     geographic_scope: string | null;
     staff_status: StaffStatus;
+    /** Starred "save for later" flag, independent of staff_status. Falls back to staff_status === "saved" when unset. */
+    is_saved?: boolean;
     dismissed_reason: string | null;
     staff_feedback: string | null;
     is_new: boolean;
