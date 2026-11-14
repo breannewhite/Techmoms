@@ -239,7 +239,7 @@ interface GroundedSource {
 }
 
 /** Turns Gemini's raw error JSON into a sentence a staff member can act on. */
-function explainSearchError(raw: string): string {
+export function explainSearchError(raw: string): string {
   if (/per day|PerDay/i.test(raw)) {
     const wait = raw.match(/retry in (?:(\d+)h)?(?:(\d+)m)?/i);
     const hours = wait?.[1] ? Number(wait[1]) : null;
@@ -491,9 +491,12 @@ function isBlockedError(error: unknown): boolean {
   return false;
 }
 
-type FetchedPage = { kind: "html"; text: string; finalUrl: string } | { kind: "pdf"; finalUrl: string };
+export type FetchedPage =
+  | { kind: "html"; text: string; rawText: string; finalUrl: string }
+  | { kind: "pdf"; finalUrl: string };
 
-async function fetchPage(startUrl: string): Promise<FetchedPage> {
+/** Fetches a page the way discovery does (public hosts only). `text` is lower-cased, `rawText` keeps case. */
+export async function fetchPage(startUrl: string): Promise<FetchedPage> {
   let url = startUrl;
   for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
     await assertPublicHost(url);
@@ -520,7 +523,8 @@ async function fetchPage(startUrl: string): Promise<FetchedPage> {
       return { kind: "pdf", finalUrl: url };
     }
     const buffer = Buffer.from(await res.arrayBuffer()).subarray(0, MAX_PAGE_BYTES);
-    return { kind: "html", text: htmlToText(buffer.toString("utf-8")), finalUrl: url };
+    const html = buffer.toString("utf-8");
+    return { kind: "html", text: htmlToText(html), rawText: htmlToText(html, false), finalUrl: url };
   }
   throw new Error("Too many redirects");
 }
@@ -558,15 +562,16 @@ function isPrivateAddress(ip: string): boolean {
   );
 }
 
-function htmlToText(html: string): string {
-  return html
+function htmlToText(html: string, lowerCase = true): string {
+  const text = html
     .replace(/<(script|style|noscript)[\s\S]*?<\/\1>/gi, " ")
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&#?\w+;/g, " ")
     .replace(/\s+/g, " ")
-    .toLowerCase();
+    .trim();
+  return lowerCase ? text.toLowerCase() : text;
 }
 
 const STOP_WORDS = new Set([

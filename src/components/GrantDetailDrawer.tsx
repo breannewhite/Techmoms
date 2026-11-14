@@ -102,9 +102,16 @@ export function GrantDetailDrawer({
         {/* Top Sticky Header */}
         <div className="sticky top-0 z-10 bg-white border-b border-slate-200 px-6 py-4 flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <div className="text-xs text-amber-800 font-medium flex items-center gap-1.5">
+            <div
+              className={`text-xs font-medium flex items-center gap-1.5 ${
+                grant.is_demo_data ? "text-amber-800" : "text-teal-800"
+              }`}
+            >
               <Info className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-              <span>Synthetic Demo Record · {grant.dashboard.category ?? "Grant Opportunity"}</span>
+              <span>
+                {grant.is_demo_data ? "Synthetic Demo Record" : "Real Grant · Found with Gemini"} ·{" "}
+                {grant.dashboard.category ?? "Grant Opportunity"}
+              </span>
             </div>
             <h2
               id="grant-detail-title"
@@ -220,7 +227,9 @@ export function GrantDetailDrawer({
                   <EligibilityText status={grant.analysis.eligibility_status} />
                 </div>
                 <div className="mt-1 text-xs text-slate-500 font-mono tabular-nums">
-                  {grant.analysis.mandatory_requirements_confirmed_percent ?? 0}% mandatory confirmed
+                  {grant.analysis.mandatory_requirements_confirmed_percent !== null
+                    ? `${grant.analysis.mandatory_requirements_confirmed_percent}% mandatory confirmed`
+                    : "Requirements not checked yet"}
                 </div>
               </div>
 
@@ -339,6 +348,13 @@ export function GrantDetailDrawer({
             <h3 className="text-base font-semibold text-slate-900">
               Funding Requirements & Gate Checks
             </h3>
+            {grant.requirements.length === 0 && (
+              <p className="text-xs text-slate-600 border border-dashed border-slate-300 rounded-md p-3.5 leading-relaxed">
+                Requirements have not been read yet. Use <strong>Evaluate Grants</strong> in the header
+                to have Gemini read the funder's page, or open the official page and check eligibility
+                by hand.
+              </p>
+            )}
             <div className="divide-y divide-slate-200 border border-slate-200 rounded-md">
               {grant.requirements.map((req, idx) => (
                 <div key={idx} className="p-3.5 space-y-1.5 bg-white">
@@ -500,7 +516,8 @@ export function GrantDetailDrawer({
             <div className="flex items-center justify-between gap-2">
               <h3 className="text-base font-semibold text-slate-900">Source Links</h3>
               <span className="text-xs text-slate-500">
-                Synthetic demo placeholders · Last verified {formatDateShort(grant.last_verified_at)}
+                {grant.is_demo_data ? "Synthetic demo placeholders · " : "Found by Gemini · "}
+                Last checked {formatDateShort(grant.last_verified_at)}
               </span>
             </div>
             <div className="space-y-1.5 text-xs">
@@ -509,8 +526,10 @@ export function GrantDetailDrawer({
                   <span className="w-28 text-slate-500 shrink-0">Official Page</span>
                   <span className="inline-flex items-center gap-1 font-mono text-slate-600 truncate">
                     <ExternalLink className="w-3 h-3 shrink-0 text-slate-400" aria-hidden="true" />
-                    <span className="truncate">{grant.official_url}</span>
-                    <span className="text-amber-700 ml-1 shrink-0">(Demo Placeholder)</span>
+                    <UrlText url={grant.official_url} isDemo={grant.is_demo_data} />
+                    {grant.is_demo_data && (
+                      <span className="text-amber-700 ml-1 shrink-0">(Demo Placeholder)</span>
+                    )}
                   </span>
                 </div>
               )}
@@ -519,8 +538,10 @@ export function GrantDetailDrawer({
                   <span className="w-28 text-slate-500 shrink-0">Application Portal</span>
                   <span className="inline-flex items-center gap-1 font-mono text-slate-600 truncate">
                     <ExternalLink className="w-3 h-3 shrink-0 text-slate-400" aria-hidden="true" />
-                    <span className="truncate">{grant.application_url}</span>
-                    <span className="text-amber-700 ml-1 shrink-0">(Demo Placeholder)</span>
+                    <UrlText url={grant.application_url} isDemo={grant.is_demo_data} />
+                    {grant.is_demo_data && (
+                      <span className="text-amber-700 ml-1 shrink-0">(Demo Placeholder)</span>
+                    )}
                   </span>
                 </div>
               )}
@@ -529,8 +550,10 @@ export function GrantDetailDrawer({
                   <span className="w-28 text-slate-500 shrink-0">Guidelines URL</span>
                   <span className="inline-flex items-center gap-1 font-mono text-slate-600 truncate">
                     <ExternalLink className="w-3 h-3 shrink-0 text-slate-400" aria-hidden="true" />
-                    <span className="truncate">{url}</span>
-                    <span className="text-amber-700 ml-1 shrink-0">(Demo Placeholder)</span>
+                    <UrlText url={url} isDemo={grant.is_demo_data} />
+                    {grant.is_demo_data && (
+                      <span className="text-amber-700 ml-1 shrink-0">(Demo Placeholder)</span>
+                    )}
                   </span>
                 </div>
               ))}
@@ -622,5 +645,20 @@ export function GrantDetailDrawer({
         </div>
       </div>
     </div>
+  );
+}
+
+/** Demo URLs are fake, so they stay plain text. Real URLs open the funder's page in a new tab. */
+function UrlText({ url, isDemo }: { url: string; isDemo: boolean }) {
+  if (isDemo) return <span className="truncate">{url}</span>;
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="truncate text-teal-800 hover:underline"
+    >
+      {url}
+    </a>
   );
 }

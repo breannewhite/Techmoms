@@ -7,6 +7,13 @@ import { createServer as createViteServer } from "vite";
 import { DEMO_GRANTS } from "./server/demoData.ts";
 import { GEMINI_ANALYSIS_MODEL, isGeminiConfigured } from "./server/gemini.ts";
 import {
+  getEvaluationJob,
+  getRealGrants,
+  replaceRealGrant,
+  resetRealWorkflow,
+  startEvaluation,
+} from "./server/realGrants.ts";
+import {
   GEMINI_DISCOVERY_MODEL,
   getCurrentDiscoveryJob,
   getDiscoveryJob,
@@ -30,8 +37,15 @@ async function startServer() {
 
   app.use(express.json());
 
-  // In-memory store for synthetic demo grants during the hackathon session
-  let grantsStore: GrantRecord[] = structuredClone(DEMO_GRANTS);
+  // Synthetic demo grants are only shown when no real grants have been discovered yet.
+  let demoStore: GrantRecord[] = structuredClone(DEMO_GRANTS);
+
+  const activeGrants = () => {
+    const real = getRealGrants();
+    return real.length > 0
+      ? { demo_mode: false, grants: real }
+      : { demo_mode: true, grants: demoStore };
+  };
 
   const profilePath = path.join(
     __dirname,
@@ -63,15 +77,31 @@ async function startServer() {
   });
 
   app.get("/api/grants", (_req, res) => {
+    const { demo_mode, grants } = activeGrants();
     res.json({
-      demo_mode: true,
-      as_of: "2026-11-14",
-      grants: grantsStore,
+      demo_mode,
+      as_of: new Date().toISOString().slice(0, 10),
+      grants,
     });
+  });
+
+  // Gemini reads each funder page and fills in requirements, fit, risks and application details.
+  app.post("/api/grants/evaluate", (_req, res) => {
+    if (!isGeminiConfigured()) {
+      res.status(400).json({ error: "GEMINI_API_KEY is not configured on the server." });
+      return;
+    }
+    const profile = JSON.parse(fs.readFileSync(profilePath, "utf-8")) as TechMomsProfile;
+    res.status(202).json({ evaluation: startEvaluation(profile) });
+  });
+
+  app.get("/api/grants/evaluate/status", (_req, res) => {
+    res.json({ evaluation: getEvaluationJob() });
   });
 
   app.patch("/api/grants/:grantId/workflow", (req, res) => {
     const { grantId } = req.params;
+    const { demo_mode: isDemo, grants: grantsStore } = activeGrants();
     const grantIndex = grantsStore.findIndex((g) => g.grant_id === grantId);
     if (grantIndex === -1) {
       res.status(404).json({ error: "Grant not found" });
@@ -137,16 +167,22 @@ async function startServer() {
       },
     };
 
-    grantsStore[grantIndex] = updated;
+    if (isDemo) {
+      demoStore[grantIndex] = updated;
+    } else {
+      replaceRealGrant(updated);
+    }
     res.json({ grant: updated });
   });
 
+  // Demo mode: restore the synthetic records. Real mode: clear staff edits, keep grant details.
   app.post("/api/grants/reset-demo", (_req, res) => {
-    grantsStore = structuredClone(DEMO_GRANTS);
-    res.json({
-      demo_mode: true,
-      grants: grantsStore,
-    });
+    if (activeGrants().demo_mode) {
+      demoStore = structuredClone(DEMO_GRANTS);
+      res.json({ demo_mode: true, grants: demoStore });
+    } else {
+      res.json({ demo_mode: false, grants: resetRealWorkflow() });
+    }
   });
 
   // Live discovery: Gemini searches the web, then each official page is checked server-side.

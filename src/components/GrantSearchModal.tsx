@@ -33,6 +33,8 @@ interface DiscoveryPreviewResponse {
 interface GrantSearchModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Called when a new discovery run finishes, so the dashboard can reload its grants. */
+  onDiscoveryComplete?: () => void;
 }
 
 const VERIFICATION_LABELS: Record<
@@ -57,7 +59,7 @@ const VERIFICATION_LABELS: Record<
   },
 };
 
-export function GrantSearchModal({ isOpen, onClose }: GrantSearchModalProps) {
+export function GrantSearchModal({ isOpen, onClose, onDiscoveryComplete }: GrantSearchModalProps) {
   const [preview, setPreview] = useState<DiscoveryPreviewResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -119,6 +121,7 @@ export function GrantSearchModal({ isOpen, onClose }: GrantSearchModalProps) {
         if (data.job.status === "complete") {
           setSaved(data.job);
           setCurrent(null);
+          onDiscoveryComplete?.();
         } else {
           setCurrent(data.job);
         }
@@ -127,7 +130,7 @@ export function GrantSearchModal({ isOpen, onClose }: GrantSearchModalProps) {
       }
     }, 2000);
     return () => window.clearInterval(timer);
-  }, [isOpen, jobId, jobStatus]);
+  }, [isOpen, jobId, jobStatus, onDiscoveryComplete]);
 
   useEffect(() => {
     if (!isOpen) return;

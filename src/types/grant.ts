@@ -161,6 +161,16 @@ export interface GrantRecord {
   };
 }
 
+// ---- Gemini evaluation of real grants ----------------------------------------
+
+export interface EvaluationJob {
+  status: "idle" | "running" | "complete" | "failed";
+  progress: { done: number; total: number; message: string };
+  error: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+}
+
 // ---- Live discovery (Gemini + Google Search) -------------------------------
 
 export type CandidateVerification =

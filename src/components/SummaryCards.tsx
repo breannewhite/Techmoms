@@ -7,6 +7,7 @@ interface SummaryCardsProps {
 }
 
 export function SummaryCards({ grants, priorityThreshold }: SummaryCardsProps) {
+  const isDemo = grants.length > 0 && grants.every((g) => g.is_demo_data);
   const activePortfolio = grants.filter((g) => g.dashboard.staff_status !== "dismissed");
 
   const openCount = activePortfolio.filter((g) => g.status === "open").length;
@@ -35,7 +36,7 @@ export function SummaryCards({ grants, priorityThreshold }: SummaryCardsProps) {
       <div className="bg-white border border-slate-200 rounded-lg p-5">
         <div className="flex items-baseline justify-between gap-2">
           <h2 className="text-sm font-medium text-slate-600">Total Grant Opportunities</h2>
-          <span className="text-xs text-slate-500">Demo Portfolio</span>
+          <span className="text-xs text-slate-500">{isDemo ? "Demo Portfolio" : "Real Grants"}</span>
         </div>
         <p className="mt-2 text-3xl font-semibold text-slate-900 font-mono tabular-nums tracking-tight">
           {activePortfolio.length}

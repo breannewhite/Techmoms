@@ -463,7 +463,7 @@ export function GrantTable({
                     No grant opportunities match your current filters.
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    Try clearing one or more filters to view all synthetic demo opportunities.
+                    Try clearing one or more filters to view all opportunities.
                   </p>
                   {hasActiveFilters && (
                     <button
@@ -592,7 +592,8 @@ export function GrantTable({
       {/* Footer count */}
       <div className="px-4 py-2.5 border-t border-slate-200 bg-slate-50/70 flex items-center justify-between text-xs text-slate-500">
         <span className="tabular-nums">
-          Showing {sortedGrants.length} of {grants.length} synthetic demo grants
+          Showing {sortedGrants.length} of {grants.length}{" "}
+          {grants.length > 0 && grants.every((g) => g.is_demo_data) ? "synthetic demo grants" : "grants"}
         </span>
         <span>Click any row to inspect requirements, eligibility evidence, and workflow</span>
       </div>
