@@ -223,14 +223,11 @@ export function GrantDetailDrawer({
               </div>
 
               <div>
-                <div className="text-xs text-slate-500">Eligibility Status</div>
-                <div className="mt-1.5">
-                  <EligibilityText status={grant.analysis.eligibility_status} />
-                </div>
-                <div className="mt-1 text-xs text-slate-500 font-mono tabular-nums">
+                <div className="text-xs text-slate-500">Requirements Checked</div>
+                <div className="mt-1.5 text-sm font-semibold text-slate-900 font-mono tabular-nums">
                   {grant.analysis.mandatory_requirements_confirmed_percent !== null
-                    ? `${grant.analysis.mandatory_requirements_confirmed_percent}% mandatory confirmed`
-                    : "Requirements not checked yet"}
+                    ? `${grant.analysis.mandatory_requirements_confirmed_percent}% confirmed`
+                    : "Not checked yet"}
                 </div>
                 {grant.data_quality.notes.includes(DEMO_ASSUMPTION_NOTE) && (
                   <div className="mt-1 text-[11px] text-amber-700 leading-snug">
