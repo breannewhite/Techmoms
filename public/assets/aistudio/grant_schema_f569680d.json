@@ -1,0 +1,254 @@
+{
+  "schema_version": "1.1",
+  "description": "Canonical grant opportunity record template; null means unknown, not zero. Populate from real sources; never invent grant facts.",
+  "allowed_values": {
+    "status": [
+      "open",
+      "upcoming",
+      "recurring_not_yet_open",
+      "closed",
+      "needs_verification"
+    ],
+    "eligibility_status": [
+      "eligible",
+      "ineligible",
+      "needs_verification",
+      "unknown"
+    ],
+    "requirement_determination": [
+      "pass",
+      "fail",
+      "unknown"
+    ],
+    "competitiveness_band": [
+      "low",
+      "medium",
+      "high",
+      "unknown"
+    ],
+    "staff_status": [
+      "new",
+      "saved",
+      "reviewing",
+      "applying",
+      "dismissed",
+      "submitted"
+    ],
+    "pipeline_stage": [
+      "research",
+      "qualified",
+      "drafted",
+      "submitted",
+      "award_decided"
+    ],
+    "application_complexity": [
+      "low",
+      "medium",
+      "high",
+      "unknown"
+    ],
+    "award_outcome": [
+      "awarded",
+      "declined",
+      "pending",
+      "withdrawn",
+      "unknown"
+    ]
+  },
+  "discovery_policy": {
+    "include_statuses": [
+      "open",
+      "upcoming",
+      "recurring_not_yet_open"
+    ],
+    "exclude_closed_unless_future_cycle_expected": true,
+    "deduplicate_by": [
+      "official_url",
+      "grant_id",
+      "funder + grant name + cycle"
+    ],
+    "source_priority": [
+      "official grant guidelines",
+      "official funder page",
+      "government database",
+      "third-party listing"
+    ],
+    "weekly_refresh": true,
+    "preserve_source_evidence": true
+  },
+  "score_policy": {
+    "eligibility": "Hard gate: a failed mandatory requirement makes ineligible; unknown requirements prevent confirmed eligible status.",
+    "mandatory_requirements_confirmed_percent": "100 * number of verified passing mandatory requirements / total mandatory requirements; not a win probability.",
+    "strategic_fit_percent": "Weighted rubric across program, population, geography, mission, impact and grant priorities.",
+    "competitiveness_band": "Evidence-based assessment of geographic scope, number of awards, applicant pool and historic recipients; do not equate local with guaranteed easier.",
+    "win_probability_percent": "Keep null unless calibrated against credible historical data; show unknown otherwise.",
+    "priority_score": "Optional internal weighted ranking, do not label as likelihood of winning.",
+    "recommended_request_usd": "Only calculate from award rules, eligible project budget and match constraints.",
+    "expected_value_usd": "Calculate recommended_request_usd * win_probability_percent / 100 only when both are supported; otherwise null. Not guaranteed revenue."
+  },
+  "record_template": {
+    "schema_version": "1.1",
+    "grant_id": "source-stable-id",
+    "name": null,
+    "funder": null,
+    "official_url": null,
+    "application_url": null,
+    "source_urls": [],
+    "last_verified_at": null,
+    "discovered_at": null,
+    "status": "needs_verification",
+    "cycle": {
+      "opens_on": null,
+      "deadline": null,
+      "recurrence": "unknown",
+      "next_expected_open_on": null,
+      "letter_of_intent_deadline": null,
+      "decision_date": null,
+      "award_date": null,
+      "deadline_type": "unknown",
+      "cycle_notes": null
+    },
+    "funding": {
+      "currency": "USD",
+      "minimum_award": null,
+      "maximum_award": null,
+      "typical_award": null,
+      "total_program_funding": null,
+      "number_of_awards": null,
+      "matching_funds_required": null,
+      "matching_percentage": null,
+      "allowed_costs": [],
+      "excluded_costs": [],
+      "recommended_request_usd": null,
+      "recommendation_basis": null,
+      "overhead_allowed": null,
+      "indirect_cost_rate_cap_percent": null,
+      "overhead_restrictions": null,
+      "expected_value_usd": null,
+      "expected_value_basis": null
+    },
+    "scope": {
+      "geographic_level": null,
+      "eligible_states": [],
+      "eligible_counties": [],
+      "eligible_cities": [],
+      "national": null,
+      "target_populations": [],
+      "topics": [],
+      "eligible_program_types": []
+    },
+    "requirements": [
+      {
+        "requirement": "",
+        "mandatory": true,
+        "source_url": null,
+        "source_quote_or_excerpt": null,
+        "techmoms_evidence": null,
+        "determination": "unknown",
+        "reason": ""
+      }
+    ],
+    "analysis": {
+      "eligibility_status": "unknown",
+      "mandatory_requirements_confirmed_percent": null,
+      "strategic_fit_percent": null,
+      "strategic_fit_rationale": null,
+      "competitiveness_band": "unknown",
+      "competition_evidence": [],
+      "win_probability_percent": null,
+      "win_probability_method": null,
+      "priority_score": null,
+      "matched_program_ids": [],
+      "strengths": [],
+      "risks": [],
+      "missing_information_questions": [],
+      "application_effort_hours_estimate": null,
+      "recommended_action": "research",
+      "win_probability_evidence": [],
+      "expected_value_usd": null,
+      "expected_value_basis": null
+    },
+    "dashboard": {
+      "category": null,
+      "geographic_scope": null,
+      "staff_status": "new",
+      "dismissed_reason": null,
+      "staff_feedback": null,
+      "is_new": true,
+      "last_change_detected_at": null
+    },
+    "data_quality": {
+      "verified_from_primary_source": false,
+      "confidence": "unknown",
+      "missing_fields": [],
+      "notes": []
+    },
+    "application": {
+      "letter_of_intent_required": null,
+      "application_complexity": "unknown",
+      "estimated_hours": null,
+      "hours_estimate_basis": null,
+      "required_attachments": [],
+      "prerequisites": [],
+      "submission_method": null,
+      "application_instructions_url": null
+    },
+    "workflow": {
+      "pipeline_stage": "research",
+      "assigned_owner": null,
+      "date_qualified": null,
+      "date_drafted": null,
+      "submitted_at": null,
+      "award_decision_at": null,
+      "award_outcome": "unknown",
+      "amount_awarded_usd": null,
+      "internal_notes": null
+    }
+  },
+  "dashboard_configuration": {
+    "summary_metrics": [
+      {
+        "id": "total_opportunities",
+        "definition": "Count of active, upcoming, or recurring opportunities currently shown, excluding dismissed if filtered out"
+      },
+      {
+        "id": "potential_funding_usd",
+        "definition": "Sum of supported recommended_request_usd values for included opportunities; do not imply guaranteed revenue"
+      },
+      {
+        "id": "top_opportunities",
+        "definition": "Count of included opportunities at or above a configurable priority_score threshold"
+      }
+    ],
+    "default_columns": [
+      "name",
+      "scope.topics",
+      "funding.recommended_request_usd",
+      "analysis.strategic_fit_percent",
+      "cycle.deadline",
+      "workflow.pipeline_stage"
+    ],
+    "filters": [
+      "scope.topics",
+      "scope.geographic_level",
+      "funding.maximum_award",
+      "funding.recommended_request_usd",
+      "analysis.strategic_fit_percent",
+      "analysis.competitiveness_band",
+      "cycle.deadline",
+      "workflow.pipeline_stage",
+      "workflow.assigned_owner"
+    ],
+    "top_opportunity_priority_threshold": 80
+  },
+  "workflow_policy": {
+    "staff_owned_fields": [
+      "workflow",
+      "dashboard.staff_status",
+      "dashboard.dismissed_reason",
+      "dashboard.staff_feedback"
+    ],
+    "agent_should_not_overwrite_staff_fields": true,
+    "award_decided_is_terminal_stage": true
+  }
+}

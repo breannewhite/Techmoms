@@ -1,0 +1,8 @@
+{
+  "name": "Tech-Moms Grant Intelligence",
+  "description": "AI-assisted grant discovery, eligibility evaluation, and pipeline prioritization workspace for Tech-Moms.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,314 @@
+{
+  "schema_version": "1.0",
+  "organization_id": "tech-moms",
+  "demo_mode": true,
+  "as_of": "2026-11-14",
+  "provenance_policy": {
+    "public_website": "Reported on linked public website; not independently audited",
+    "synthetic_demo": "Invented for hackathon testing; never represent as factual",
+    "unverified": "Must be confirmed before real eligibility decisions"
+  },
+  "organization": {
+    "name": {
+      "value": "Tech-Moms",
+      "provenance": "public_website",
+      "source_url": "https://www.tech-moms.org/"
+    },
+    "website": {
+      "value": "https://www.tech-moms.org/",
+      "provenance": "public_website",
+      "source_url": "https://www.tech-moms.org/"
+    },
+    "mission": {
+      "value": "Help individuals transition into tech and achieve long-term career success through technical skills, networking and career exploration.",
+      "provenance": "public_website",
+      "source_url": "https://www.tech-moms.org/"
+    },
+    "first_cohorts": {
+      "value": "2020-09",
+      "provenance": "public_website",
+      "source_url": "https://www.tech-moms.org/about"
+    },
+    "tax_exempt_501c3": {
+      "value": true,
+      "provenance": "unverified",
+      "source_url": null
+    },
+    "headquarters_state": {
+      "value": "Utah",
+      "provenance": "public_website",
+      "source_url": "https://www.tech-moms.org/about"
+    },
+    "annual_operating_budget_usd": {
+      "value": 850000,
+      "provenance": "synthetic_demo",
+      "source_url": null
+    },
+    "annual_revenue_usd": {
+      "value": 790000,
+      "provenance": "synthetic_demo",
+      "source_url": null
+    },
+    "full_time_equivalent_staff": {
+      "value": 7,
+      "provenance": "synthetic_demo",
+      "source_url": null
+    },
+    "available_cash_match_usd": {
+      "value": 20000,
+      "provenance": "synthetic_demo",
+      "source_url": null
+    },
+    "ein": {
+      "value": null,
+      "provenance": "unverified",
+      "source_url": null
+    }
+  },
+  "service_area": {
+    "states": {
+      "value": [
+        "Utah"
+      ],
+      "provenance": "public_website",
+      "source_url": "https://www.tech-moms.org/tech-moms"
+    },
+    "delivery": {
+      "value": [
+        "in_person",
+        "online",
+        "hybrid"
+      ],
+      "provenance": "public_website",
+      "source_url": "https://www.tech-moms.org/tech-moms"
+    },
+    "locations": {
+      "value": [
+        "Lehi",
+        "Sandy",
+        "St. George",
+        "Wasatch Front",
+        "rural Utah via online cohorts"
+      ],
+      "provenance": "public_website",
+      "source_url": "https://www.tech-moms.org/tech-moms"
+    },
+    "willing_to_expand_to_other_states": {
+      "value": false,
+      "provenance": "synthetic_demo",
+      "source_url": null
+    }
+  },
+  "populations": {
+    "primary": {
+      "value": [
+        "adult women",
+        "mothers",
+        "career changers",
+        "career returners"
+      ],
+      "provenance": "public_website",
+      "source_url": "https://www.tech-moms.org/about"
+    },
+    "secondary": {
+      "value": [
+        "adults building digital literacy",
+        "families in digital literacy classes"
+      ],
+      "provenance": "public_website",
+      "source_url": "https://www.tech-moms.org/tech-moms"
+    },
+    "percent_low_income": {
+      "value": 48,
+      "provenance": "synthetic_demo",
+      "source_url": null
+    },
+    "percent_unemployed_or_underemployed": {
+      "value": 62,
+      "provenance": "synthetic_demo",
+      "source_url": null
+    },
+    "percent_rural": {
+      "value": 18,
+      "provenance": "synthetic_demo",
+      "source_url": null
+    },
+    "demographic_data_collection": {
+      "value": "aggregate, consent-based",
+      "provenance": "synthetic_demo",
+      "source_url": null
+    }
+  },
+  "programs": [
+    {
+      "id": "foundational",
+      "name": "Tech-Moms Foundational Program",
+      "description": {
+        "value": "Nine-week introductory training in HTML, CSS and JavaScript, career exploration, networking, with childcare support and tuition assistance.",
+        "provenance": "public_website",
+        "source_url": "https://www.tech-moms.org/tech-moms"
+      },
+      "topics": [
+        "adult education",
+        "digital skills",
+        "technology workforce",
+        "career pathways"
+      ],
+      "annual_budget_usd": {
+        "value": 300000,
+        "provenance": "synthetic_demo",
+        "source_url": null
+      },
+      "annual_participants": {
+        "value": 180,
+        "provenance": "synthetic_demo",
+        "source_url": null
+      }
+    },
+    {
+      "id": "advanced",
+      "name": "Tech-Moms 2.0",
+      "description": {
+        "value": "Alumni training in AI Foundations, cybersecurity, data analytics and project management.",
+        "provenance": "public_website",
+        "source_url": "https://www.tech-moms.org/tech-moms"
+      },
+      "topics": [
+        "AI training",
+        "cybersecurity",
+        "data analytics",
+        "project management",
+        "upskilling"
+      ],
+      "annual_budget_usd": {
+        "value": 260000,
+        "provenance": "synthetic_demo",
+        "source_url": null
+      },
+      "annual_participants": {
+        "value": 100,
+        "provenance": "synthetic_demo",
+        "source_url": null
+      }
+    },
+    {
+      "id": "relaunch",
+      "name": "Career Relaunch",
+      "description": {
+        "value": "Online career reentry training for women returning to the workforce.",
+        "provenance": "public_website",
+        "source_url": "https://www.tech-moms.org/tech-moms"
+      },
+      "topics": [
+        "career reentry",
+        "women employment",
+        "economic mobility"
+      ],
+      "annual_budget_usd": {
+        "value": 100000,
+        "provenance": "synthetic_demo",
+        "source_url": null
+      },
+      "annual_participants": {
+        "value": 90,
+        "provenance": "synthetic_demo",
+        "source_url": null
+      }
+    },
+    {
+      "id": "literacy",
+      "name": "Digital Literacy",
+      "description": {
+        "value": "Family-friendly computer skills training including workplace collaboration tools; adults may attend with school-aged children.",
+        "provenance": "public_website",
+        "source_url": "https://www.tech-moms.org/tech-moms"
+      },
+      "topics": [
+        "digital inclusion",
+        "computer literacy",
+        "family education"
+      ],
+      "annual_budget_usd": {
+        "value": 90000,
+        "provenance": "synthetic_demo",
+        "source_url": null
+      },
+      "annual_participants": {
+        "value": 120,
+        "provenance": "synthetic_demo",
+        "source_url": null
+      }
+    }
+  ],
+  "outcomes": {
+    "alumni_total": {
+      "value": 957,
+      "provenance": "public_website",
+      "source_url": "https://www.tech-moms.org/"
+    },
+    "pursued_additional_education_percent": {
+      "value": 63,
+      "provenance": "public_website",
+      "source_url": "https://www.tech-moms.org/"
+    },
+    "accepted_new_position_percent": {
+      "value": 61,
+      "provenance": "public_website",
+      "source_url": "https://www.tech-moms.org/"
+    },
+    "received_pay_increase_percent": {
+      "value": 58,
+      "provenance": "public_website",
+      "source_url": "https://www.tech-moms.org/"
+    },
+    "report_period": {
+      "value": "September 2026 annual report figures",
+      "provenance": "public_website",
+      "source_url": "https://www.tech-moms.org/"
+    }
+  },
+  "grant_preferences": {
+    "minimum_preferred_award_usd": {
+      "value": 10000,
+      "provenance": "synthetic_demo",
+      "source_url": null
+    },
+    "maximum_application_effort_hours": {
+      "value": 50,
+      "provenance": "synthetic_demo",
+      "source_url": null
+    },
+    "government_grants_allowed": {
+      "value": true,
+      "provenance": "synthetic_demo",
+      "source_url": null
+    },
+    "national_grants_allowed": {
+      "value": true,
+      "provenance": "synthetic_demo",
+      "source_url": null
+    },
+    "requires_staff_review_before_application": true,
+    "search_topics": [
+      "women in technology",
+      "workforce development",
+      "career reentry",
+      "adult education",
+      "economic mobility",
+      "digital inclusion",
+      "STEM education",
+      "cybersecurity training",
+      "AI literacy",
+      "rural workforce",
+      "job training"
+    ]
+  },
+  "matching_policy": {
+    "hard_eligibility": "Pass/fail/unknown, never infer pass from mission similarity",
+    "missing_information": "Flag as needs_verification and generate staff question",
+    "scoring": "Separate eligibility completion, strategic fit, competitiveness and estimated win probability",
+    "probability": "Null unless supported by sufficient grant-specific historical evidence",
+    "sources": "Cite original grant URLs and dates; preserve extraction evidence",
+    "synthetic_data": "All simulated profile fields must remain visibly marked in UI"
+  }
+}
