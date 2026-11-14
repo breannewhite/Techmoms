@@ -137,6 +137,8 @@ export interface GrantRecord {
     confidence: string;
     missing_fields: string[];
     notes: string[];
+    /** Fingerprint of the organization profile used for the last Gemini evaluation. */
+    evaluated_with_profile?: string;
   };
   application: {
     letter_of_intent_required: boolean | null;
@@ -160,6 +162,9 @@ export interface GrantRecord {
     internal_notes: string | null;
   };
 }
+
+/** Added to a grant's data_quality.notes when its eligibility result depends on a demo assumption. */
+export const DEMO_ASSUMPTION_NOTE = "Eligibility reflects demo assumptions about Tech-Moms (see Org Profile).";
 
 // ---- Gemini evaluation of real grants ----------------------------------------
 
@@ -271,6 +276,8 @@ export interface TechMomsProfile {
     received_pay_increase_percent: ProvenancedValue<number>;
     report_period: ProvenancedValue<string>;
   };
+  /** Invented facts about the organization, used only for the hackathon demo and always labeled as such. */
+  demo_assumptions?: Array<{ id: string; statement: string; provenance: ProvenanceType }>;
   grant_preferences: {
     minimum_preferred_award_usd: ProvenancedValue<number>;
     maximum_application_effort_hours: ProvenancedValue<number>;

@@ -1,8 +1,10 @@
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { explainSearchError, fetchPage, getLastCompleteDiscoveryJob } from "./discovery.ts";
 import { createGeminiClient, GEMINI_ANALYSIS_MODEL } from "./gemini.ts";
+import { DEMO_ASSUMPTION_NOTE } from "../src/types/grant.ts";
 import type {
   ApplicationComplexity,
   CompetitivenessBand,
@@ -378,8 +380,36 @@ export function startEvaluation(profile: TechMomsProfile): EvaluationJob {
   return evaluation;
 }
 
+/** Short fingerprint of the profile, so grants are re-evaluated when the profile or assumptions change. */
+function profileFingerprint(profile: TechMomsProfile): string {
+  return crypto.createHash("sha1").update(JSON.stringify(profile)).digest("hex").slice(0, 10);
+}
+
+/** Starts from a fresh base record (so old evaluation text does not pile up), keeping staff edits. */
+function rebase(grant: GrantRecord): GrantRecord {
+  const job = getLastCompleteDiscoveryJob();
+  const candidate = job?.candidates.find((c) => `real-${c.candidate_id}` === grant.grant_id);
+  if (!job || !candidate) return grant;
+  const fresh = buildBaseRecord(candidate, (job.finished_at ?? job.started_at).slice(0, 10));
+  return {
+    ...fresh,
+    workflow: grant.workflow,
+    dashboard: {
+      ...fresh.dashboard,
+      staff_status: grant.dashboard.staff_status,
+      dismissed_reason: grant.dashboard.dismissed_reason,
+      staff_feedback: grant.dashboard.staff_feedback,
+      is_new: grant.dashboard.is_new,
+      last_change_detected_at: grant.dashboard.last_change_detected_at,
+    },
+  };
+}
+
 async function runEvaluation(profile: TechMomsProfile): Promise<void> {
-  const todo = getRealGrants().filter((g) => !isEnriched(g) && g.official_url);
+  const fingerprint = profileFingerprint(profile);
+  const todo = getRealGrants().filter(
+    (g) => g.official_url && !(isEnriched(g) && g.data_quality.evaluated_with_profile === fingerprint)
+  );
   evaluation.progress = { done: 0, total: todo.length, message: `Reading ${todo.length} funder pages…` };
 
   // 1. Fetch pages (free, no AI). Pages that block us or are PDFs are skipped.
@@ -422,7 +452,7 @@ async function runEvaluation(profile: TechMomsProfile): Promise<void> {
     for (const item of batch) {
       const ev = results.find((r) => r.candidate_id === item.grant.grant_id);
       if (!ev) continue;
-      replaceRealGrant(applyEvaluation(item.grant, ev, item.lower));
+      replaceRealGrant(applyEvaluation(rebase(item.grant), ev, item.lower, fingerprint));
       applied += 1;
     }
     evaluation.progress = {
@@ -458,6 +488,10 @@ ORGANIZATION (reported facts; financial figures and tax status are NOT verified)
 - Based in ${profile.service_area.states.value.join(", ")} (${profile.service_area.locations.value.join(", ")}); serves ${profile.populations.primary.value.join(", ")}
 - Programs (id: name): ${programs}
 
+DEMO ASSUMPTIONS about the organization (invented for a hackathon demo, not verified):
+${(profile.demo_assumptions ?? []).map((a) => `- ${a.statement}`).join("\n") || "- (none)"}
+Treat these as true when judging requirements about the organization itself. When a "pass" depends on one, start techmoms_evidence with "Assumption:". Never make assumptions about the GRANT's own rules: if the page does not state a requirement, do not invent one.
+
 ${pageBlocks}
 
 Return ONLY JSON: {"grants":[ ... one object per grant ... ]}. Each object:
@@ -468,7 +502,7 @@ Return ONLY JSON: {"grants":[ ... one object per grant ... ]}. Each object:
  "recurrence": string (e.g. "annual", "rolling", "one-time", "unknown"),
  "award_min_usd": number | null, "award_max_usd": number | null, "number_of_awards": number | null,
  "matching_required": boolean | null,
- "eligibility_status": "eligible" | "ineligible" | "needs_verification" | "unknown",
+ "eligibility_status": "eligible" | "ineligible" | "needs_verification" | "unknown" (use "eligible" only if the page states the eligibility rules clearly and every mandatory requirement is "pass"; use "ineligible" if any mandatory requirement is "fail"; use "needs_verification" if the rules are unclear or incomplete),
  "requirements": [ up to 6 of {"requirement": string, "mandatory": boolean, "source_quote": string | null (an exact short quote from the page text, max 200 chars), "techmoms_evidence": string | null, "determination": "pass" | "fail" | "unknown", "reason": string} ],
  "fit_percent": number 0-100 (how well the grant matches the organization's mission and programs),
  "fit_rationale": string (1-2 sentences),
@@ -483,7 +517,7 @@ Return ONLY JSON: {"grants":[ ... one object per grant ... ]}. Each object:
  "letter_of_intent_required": boolean | null,
  "category": string (short, e.g. "State Workforce", "Corporate Giving", "Federal Workforce")
 }
-Mark "determination" as "pass" only when the page or the organization facts above clearly support it; otherwise "unknown". Do not guess eligibility.`;
+Mark "determination" as "pass" only when the organization facts or the demo assumptions above clearly support it; "fail" when they clearly contradict it; otherwise "unknown". Do not guess.`;
 }
 
 async function askGemini(
@@ -516,7 +550,12 @@ const strings = (v: unknown, limit: number, max = 300): string[] =>
 const isoDate = (v: unknown): string | null =>
   typeof v === "string" && /^20\d{2}-\d{2}-\d{2}$/.test(v) ? v : null;
 
-function applyEvaluation(grant: GrantRecord, ev: Record<string, unknown>, pageLower: string): GrantRecord {
+function applyEvaluation(
+  grant: GrantRecord,
+  ev: Record<string, unknown>,
+  pageLower: string,
+  fingerprint: string
+): GrantRecord {
   const eligibility: EligibilityStatus = oneOf(
     ev.eligibility_status,
     ["eligible", "ineligible", "needs_verification", "unknown"] as const,
@@ -617,7 +656,7 @@ function applyEvaluation(grant: GrantRecord, ev: Record<string, unknown>, pageLo
       priority_score: priority,
       matched_program_ids: programs,
       strengths: strings(ev.strengths, 3),
-      risks: [...strings(ev.risks, 3), ...grant.analysis.risks].slice(0, 5),
+      risks: [...new Set([...strings(ev.risks, 3), ...grant.analysis.risks])].slice(0, 5),
       missing_information_questions: strings(ev.missing_information_questions, 3),
       recommended_action: eligibility === "ineligible" ? "dismiss" : eligibility === "eligible" ? "advance_to_draft" : "verify_eligibility",
     },
@@ -629,9 +668,14 @@ function applyEvaluation(grant: GrantRecord, ev: Record<string, unknown>, pageLo
     data_quality: {
       ...grant.data_quality,
       confidence: "page_read_by_gemini",
+      evaluated_with_profile: fingerprint,
       missing_fields: missing,
       notes: [
         ...grant.data_quality.notes.filter((n) => !n.startsWith("Found by Gemini web search")),
+        // Flag any result that leaned on an invented fact about Tech-Moms.
+        ...(requirements.some((r) => r.techmoms_evidence?.startsWith("Assumption:"))
+          ? [DEMO_ASSUMPTION_NOTE]
+          : []),
         "Evaluated by Gemini from the funder's page text. Quotes are checked against the page, but eligibility is a suggestion: staff must confirm.",
         `Priority score = fit × eligibility factor × timing factor (formula in the app, not chosen by Gemini).`,
       ],

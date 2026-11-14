@@ -1,5 +1,6 @@
 import { AlertCircle, ExternalLink, Info, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { DEMO_ASSUMPTION_NOTE } from "../types/grant.ts";
 import type {
   AwardOutcome,
   GrantRecord,
@@ -231,6 +232,11 @@ export function GrantDetailDrawer({
                     ? `${grant.analysis.mandatory_requirements_confirmed_percent}% mandatory confirmed`
                     : "Requirements not checked yet"}
                 </div>
+                {grant.data_quality.notes.includes(DEMO_ASSUMPTION_NOTE) && (
+                  <div className="mt-1 text-[11px] text-amber-700 leading-snug">
+                    Based on demo assumptions about Tech-Moms
+                  </div>
+                )}
               </div>
 
               <div>

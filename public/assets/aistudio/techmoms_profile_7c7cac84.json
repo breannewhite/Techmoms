@@ -31,7 +31,7 @@
     },
     "tax_exempt_501c3": {
       "value": true,
-      "provenance": "unverified",
+      "provenance": "synthetic_demo",
       "source_url": null
     },
     "headquarters_state": {
@@ -310,5 +310,37 @@
     "probability": "Null unless supported by sufficient grant-specific historical evidence",
     "sources": "Cite original grant URLs and dates; preserve extraction evidence",
     "synthetic_data": "All simulated profile fields must remain visibly marked in UI"
-  }
+  },
+  "demo_assumptions": [
+    {
+      "id": "tax_exempt",
+      "provenance": "synthetic_demo",
+      "statement": "Tech-Moms is a recognized 501(c)(3) public charity (not a private foundation) and is in good standing with the IRS."
+    },
+    {
+      "id": "own_ein",
+      "provenance": "synthetic_demo",
+      "statement": "Tech-Moms has its own EIN and is not fiscally sponsored by another organization."
+    },
+    {
+      "id": "form_990",
+      "provenance": "synthetic_demo",
+      "statement": "Tech-Moms files a Form 990 every year and has board-approved annual budgets."
+    },
+    {
+      "id": "financial_review",
+      "provenance": "synthetic_demo",
+      "statement": "Tech-Moms has annual independent financial reviews but has NOT had a full accrual-basis financial audit."
+    },
+    {
+      "id": "sam_registration",
+      "provenance": "synthetic_demo",
+      "statement": "Tech-Moms has an active SAM.gov registration and a Unique Entity ID (UEI) for federal grants."
+    },
+    {
+      "id": "utah_registration",
+      "provenance": "synthetic_demo",
+      "statement": "Tech-Moms is registered as a nonprofit in Utah and holds the Utah state registrations grants usually require."
+    }
+  ]
 }

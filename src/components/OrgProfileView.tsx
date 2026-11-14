@@ -47,6 +47,29 @@ export function OrgProfileView({ profile, isLoading }: OrgProfileViewProps) {
 
   return (
     <div className="space-y-6">
+      {/* Demo assumptions used when Gemini evaluates grants */}
+      {profile.demo_assumptions && profile.demo_assumptions.length > 0 && (
+        <section className="bg-white border border-amber-200 rounded-lg p-5 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold text-slate-900">
+              Demo Assumptions Used in Grant Evaluations
+            </h2>
+            <ProvenanceTag type="synthetic_demo" />
+          </div>
+          <p className="text-xs text-slate-600 leading-relaxed max-w-3xl">
+            These facts about Tech-Moms are invented for the hackathon demo and are not verified.
+            Gemini treats them as true when it checks a grant's requirements, and any grant whose
+            result depends on one is marked in its details. Replace them with confirmed facts before
+            using this for real applications.
+          </p>
+          <ul className="space-y-1.5 text-sm text-slate-800 list-disc pl-5">
+            {profile.demo_assumptions.map((assumption) => (
+              <li key={assumption.id}>{assumption.statement}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {/* Provenance Policy Header */}
       <section className="bg-white border border-slate-200 rounded-lg p-5">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">

@@ -10,7 +10,9 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { SetAsideGrants } from "./components/SetAsideGrants.tsx";
+import { partitionGrants } from "./utils/setAside.ts";
 import { GrantDetailDrawer } from "./components/GrantDetailDrawer.tsx";
 import { GrantSearchModal } from "./components/GrantSearchModal.tsx";
 import { GrantTable } from "./components/GrantTable.tsx";
@@ -125,6 +127,9 @@ export default function App() {
       setEvaluationError(error instanceof Error ? error.message : "Could not start evaluation");
     }
   };
+
+  // Ineligible, very low fit, or broken-link grants go to a collapsed section at the bottom.
+  const { shown: shownGrants, setAside } = useMemo(() => partitionGrants(grants), [grants]);
 
   const isDemo = grants.length > 0 && grants.every((g) => g.is_demo_data);
   const isEvaluating = evaluation?.status === "running";
@@ -389,11 +394,15 @@ export default function App() {
             <>
               {activeTab === "dashboard" && (
                 <div className="space-y-6">
-                  <SummaryCards grants={grants} priorityThreshold={priorityThreshold} />
+                  <SummaryCards grants={shownGrants} priorityThreshold={priorityThreshold} />
                   <GrantTable
-                    grants={grants}
+                    grants={shownGrants}
                     isLoading={isLoading}
                     selectedGrantId={selectedGrantId}
+                    onSelectGrant={(grant) => setSelectedGrantId(grant.grant_id)}
+                  />
+                  <SetAsideGrants
+                    items={setAside}
                     onSelectGrant={(grant) => setSelectedGrantId(grant.grant_id)}
                   />
                 </div>
@@ -401,7 +410,7 @@ export default function App() {
 
               {activeTab === "pipeline" && (
                 <PipelineBoard
-                  grants={grants}
+                  grants={shownGrants}
                   onSelectGrant={(grant) => setSelectedGrantId(grant.grant_id)}
                   onMoveStage={handleMoveStage}
                 />
