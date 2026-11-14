@@ -503,3 +503,8 @@ table{min-width:860px}
 .tmd h1,.tmd h2,.tmd h3,.tmd h4,.modal,.modal h2,.tipbox{font-family:Inter,system-ui,-apple-system,sans-serif}
 .quicklinks>*,.about>*,.two>*,.applysum>*{min-width:0}
 .tmd-error{max-width:560px;margin:60px auto;background:var(--bad-soft);border:1px solid var(--bad-line);color:var(--bad);border-radius:12px;padding:16px 18px}
+
+/* Detail panel stat row with three columns (competitiveness was removed) */
+.stats.s3{grid-template-columns:repeat(3,1fr)}
+.stats.s3 .stat:last-child{border-right:0}
+@media (max-width:640px){.stats.s3{grid-template-columns:1fr}.stats.s3 .stat{border-right:0;border-bottom:1px solid var(--line2)}.stats.s3 .stat:last-child{border-bottom:0}}

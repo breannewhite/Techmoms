@@ -131,7 +131,7 @@ function alerts(){
   return out.sort((a,b)=>a[2]<b[2]?-1:1);
 }
 function renderBell(){
-  const a=alerts(),w=document.getElementById('bellwrap');
+  const a=alerts(),w=document.getElementById('bellwrap');if(!a.length){w.innerHTML='';return}
   w.innerHTML=`<button type="button" class="iconbtn bell" id="bell" aria-label="Deadline reminders, ${a.length} upcoming" aria-expanded="${st.bell}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>${a.length?`<span class="bdot">${a.length}</span>`:''}</button>
   ${st.bell?`<div class="bellmenu" role="dialog" aria-label="Deadline reminders"><div class="bm-h">Coming up in the next 45 days</div>${a.length?a.map(([g,what,d])=>`<button type="button" class="bm-i" data-bellopen="${g.grant_id}"><span class="pill ${urg(days(d))||'ok'}">${left(days(d))}</span><span><b>${esc(clean(g.name))}</b><small>${what} ${dShort(d)}${what==='Application due'?` · apply by ${dShort(applyBy(g))}`:''}</small></span></button>`).join(''):'<p class="bm-empty">No deadlines in the next 45 days for grants you’ve saved or marked Ready to Apply.</p>'}<div class="bm-foot">Reminders cover grants you’ve saved, marked Ready to Apply or are writing.</div></div>`:''}`;
 }
@@ -147,7 +147,7 @@ on(document,'click',e=>{const b=e.target.closest('.tip');if(b){e.stopPropagation
 on(document,'scroll',hideTip,true);
 
 /* ---------- Page ---------- */
-const SORT_OPTS=[['match','Best Match'],['deadline','Deadline'],['award','Award Size'],['fit','Fit Score'],['effort','Effort'],['name','Name']];
+const SORT_OPTS=[['match','Best Match'],['award','Award Size'],['fit','Fit Score'],['name','Name']];
 const SORT_DIR_LABEL={match:['Weakest First','Strongest First'],deadline:['Soonest First','Latest First'],award:['Smallest First','Largest First'],fit:['Lowest First','Highest First'],effort:['Quickest First','Longest First'],name:['A to Z','Z to A'],stage:['Earliest Stage First','Latest Stage First']};
 const ASC_DEFAULT=['name','deadline','effort','stage'];
 const fitOut=v=>+v?`${v}% or higher`:'Any';
@@ -195,22 +195,11 @@ function menuHTML(n){
         <div class="slider" style="margin-top:0"><div class="sl-top"><label for="r-amt">Maximum award</label><output id="o-amtMax" for="r-amt">${amtOut(st.amtMax)}</output></div>
           <input type="range" id="r-amt" min="10000" max="${AMT_TOP}" step="5000" value="${st.amtMax}" data-range="amtMax"><div class="sl-ends"><span>$10k</span><span>${k$(AMT_TOP)}</span></div></div>
       </section>
-      <section class="fm-sec"><div class="fm-h">Timing and effort</div>
+      <section class="fm-sec"><div class="fm-h">Availability</div>
         <div class="tchips">${Object.entries(AVAIL).map(([v,l])=>togChip('avail',v,l,st.avail.has(v))).join('')}</div>
-        <div class="two-sl">
-          <div class="slider"><div class="sl-top"><label for="r-due">Application due</label><output id="o-dueMax" for="r-due">${dueOut(st.dueMax)}</output></div>
-            <input type="range" id="r-due" min="7" max="${ANY_DUE}" step="1" value="${st.dueMax}" data-range="dueMax"><div class="sl-ends"><span>1 week</span><span>Any</span></div></div>
-          <div class="slider"><div class="sl-top"><label for="r-eff">Time to apply</label><output id="o-effortMax" for="r-eff">${effOut(st.effortMax)}</output></div>
-            <input type="range" id="r-eff" min="5" max="${ANY_EFFORT}" step="5" value="${st.effortMax}" data-range="effortMax"><div class="sl-ends"><span>5 hrs</span><span>Any</span></div></div>
-        </div>
       </section>
       <section class="fm-sec"><div class="fm-h">Focus area</div>
         <div class="tchips">${TOPICS.map(t=>togChip('topic',t,esc(titleCase(t)),st.topics.has(t))).join('')}</div>
-      </section>
-      <section class="fm-sec"><div class="fm-h">Can pay for ${tip('payfor')}</div>
-        <div class="tchips" role="radiogroup" aria-label="Can pay for">${[['','Any'],['program','Program Only'],['plus','Program Plus Other']].map(([v,l])=>`<button type="button" role="radio" class="tchip ${st.payfor===v?'on':''}" aria-checked="${st.payfor===v}" data-payfor="${v}">${l}</button>`).join('')}</div>
-        <p class="fm-hint" style="margin:8px 0 0">${st.payfor==='program'?'Restricted to running the program: instruction, participant support and curriculum.':st.payfor==='plus'?'Also covers costs beyond the program. Narrow it down if you need something specific:':'Program costs are instruction, participant support and curriculum. Other costs include overhead, technology, evaluation and outreach.'}</p>
-        ${st.payfor==='plus'?`<div class="usegrid" style="margin-top:10px">${USES.filter(u=>!PROGRAM_USES.includes(u[0])).map(([id,l,h])=>`<label class="usechk ${st.uses.includes(id)?'on':''}"><input type="checkbox" id="u-${id}" data-use="${id}" ${st.uses.includes(id)?'checked':''}><span><b>${l}</b><small>${h}</small></span></label>`).join('')}</div>`:''}
       </section>
     </div>
     <div class="fm-foot"><button type="button" class="linkbtn" id="fclear" data-clear>Reset All</button><button type="button" class="btn primary" id="fdone" data-fdone>Show ${n} Grant${n===1?'':'s'}</button></div>
@@ -221,7 +210,7 @@ function fbtnInner(){const fc=filterCount();return `<svg width="16" height="16" 
 
 function resultsHTML(rows){
   const chips=activeFilterChips();
-  const cols=[['star','',1],['name','Grant'],['award','Amount'],['match','Fit'],['deadline','Deadline'],['effort','Hrs to apply']];
+  const cols=[['star','',1],['name','Grant'],['award','Amount'],['match','Fit'],['deadline','Deadline']];
   return `${chips.length?`<div class="chips">${chips.map(([k,l])=>`<span class="chip">${l}<button type="button" data-unchip="${esc(k)}" aria-label="Remove ${l}">×</button></span>`).join('')}<button class="linkbtn" type="button" data-clear>Clear All</button></div>`:''}
   ${rows.length?`<div class="tablewrap"><table><thead><tr>${cols.map(([k,l])=>k==='star'?`<th class="plain" style="width:44px"><span aria-label="Saved">★</span></th>`:`<th class="${st.sort.k===k?'sorted':''}" aria-sort="${st.sort.k===k?(st.sort.dir>0?'ascending':'descending'):'none'}"><div class="thw"><button type="button" data-sort="${k}">${l}<span class="arr">${st.sort.k===k&&st.sort.dir>0?'▲':'▼'}</span></button>${k==='match'?tip('fit'):''}</div></th>`).join('')}</tr></thead><tbody>${rows.map(rowHTML).join('')}</tbody></table></div>
   <p class="kbdhint">Shortcuts: <kbd>↑</kbd> <kbd>↓</kbd> move between grants · <kbd>Enter</kbd> open · <kbd>S</kbd> save · in the detail panel <kbd>J</kbd> <kbd>K</kbd> next and previous</p>`
@@ -240,8 +229,8 @@ function render(){
   <div class="demo">ⓘ <span>${IS_DEMO?'<b>Demo data.</b> These are the synthetic records from the Techmoms repo. Funders, amounts and links are simulated.':'<b>Real grants found with Gemini web search.</b> Details come from each funder’s own page and are suggestions. Staff must confirm everything before anyone applies.'}</span></div>
   <div class="kpis">
     <div class="kpi"><div class="k"># of opportunities</div><div class="v">${active.length}</div><div class="h"><b>+${active.filter(g=>g.dashboard.is_new).length} new</b></div></div>
-    <div class="kpi"><div class="k">Recommended asks</div><div class="v">${k$(asks.reduce((s,g)=>s+(g.funding.recommended_request_usd||0),0))}</div><div class="h">Expected value needs win rates, which aren’t tracked yet</div></div>
-    <div class="kpi"><div class="k">Top priority</div><div class="v">${top.length}</div><div class="h">Priority score 80 or higher</div></div>
+    <div class="kpi"><div class="k">Open now</div><div class="v">${active.filter(g=>g.status==='open').length}</div><div class="h">Listed as open by the funder</div></div>
+    <div class="kpi"><div class="k">Strong fit</div><div class="v">${active.filter(g=>(g.analysis.strategic_fit_percent??0)>=70).length}</div><div class="h">Fit score 70% or higher</div></div>
     <button class="kpi" type="button" data-tab="saved"><div class="k">★ Saved for Later</div><div class="v">${saved.length}</div><div class="h">${saved.length?'Grants to come back to':'Star a grant to save it'}</div></button>
   </div>
   <div class="fbar">
@@ -264,17 +253,23 @@ function refresh(){
   if(st.openId)renderPanel();
 }
 
+const trunc=(t,n)=>{t=String(t||'');return t.length>n?t.slice(0,n-1).trimEnd()+'…':t};
+const STATUS_SHORT={open:'Open now',upcoming:'Upcoming',recurring_not_yet_open:'Recurring',closed:'Closed',needs_verification:'Check funder'};
+const hasRange=g=>g.funding.minimum_award!=null||g.funding.maximum_award!=null;
+/* The funder's own wording for the award, when we have no clean number */
+const awardWords=g=>{const b=g.funding.recommendation_basis||'';return b.startsWith('Funder page says: ')?b.slice(18):''};
+const awardCell=g=>hasRange(g)?`<div class="num">${range(g.funding.minimum_award,g.funding.maximum_award)}</div>${g.funding.recommended_request_usd?`<div class="l2">Ask ${k$(g.funding.recommended_request_usd)}</div>`:''}`:awardWords(g)?`<div class="l2" style="color:var(--ink)" title="${esc(awardWords(g))}">${esc(trunc(awardWords(g),64))}</div>`:'<div class="l2">Not stated</div>';
+const timingCell=g=>`<div><span class="pill ${g.status==='open'?'ok':''}">${STATUS_SHORT[g.status]||'Check funder'}</span></div>${g.cycle.cycle_notes?`<div class="l2" title="${esc(g.cycle.cycle_notes)}">${esc(trunc(g.cycle.cycle_notes,72))}</div>`:''}`;
 function rowHTML(g){
   const a=g.analysis,e=ELIG[a.eligibility_status],n=days(g.cycle.deadline);
   const status=g.status==='upcoming'?`<div class="l2">Opens ${dShort(g.cycle.opens_on)}</div>`:g.status==='recurring_not_yet_open'?`<div class="l2">Opens ${dShort(g.cycle.next_expected_open_on||g.cycle.opens_on)}</div>`:'';
   return `<tr data-id="${g.grant_id}" tabindex="0" class="${st.openId===g.grant_id?'sel':''} ${isDismissed(g)?'dim':''}" aria-label="${esc(clean(g.name))}">
   <td><button type="button" class="star" data-star="${g.grant_id}" aria-pressed="${g._saved}" aria-label="${g._saved?'Remove from saved':'Save for later'}: ${esc(clean(g.name))}" title="${g._saved?'Saved':'Save for later'}">${g._saved?'★':'☆'}</button></td>
   <td><div class="nm">${esc(clean(g.name))}${g.dashboard.is_new?'<span class="new">NEW</span>':''}</div><div class="l2">${esc(clean(g.funder))} · <span style="color:var(--acc)">${isDismissed(g)?'Archived':stageLabel(g.workflow.pipeline_stage)}</span></div></td>
-  <td><div class="num">${range(g.funding.minimum_award,g.funding.maximum_award)}</div><div class="l2">Ask ${k$(g.funding.recommended_request_usd)}</div></td>
+  <td>${awardCell(g)}</td>
   <td><div class="match"><div class="fitbar" title="Strategic fit score"><span class="fitlbl">Fit</span><span class="bar"><i class="${fitCls(a.strategic_fit_percent)}" style="width:${a.strategic_fit_percent??0}%"></i></span><span class="num">${a.strategic_fit_percent??'—'}%</span></div></div></td>
-  <td>${g.status==='closed'?`<div>${dShort(g.cycle.deadline)}</div><span class="pill" style="margin-top:3px">Closed</span>`:`<div>${dShort(g.cycle.deadline)}</div>${n!==null&&n>=0?`<span class="pill ${urg(n)||'ok'}" style="margin-top:3px">${left(n)}</span>`:''}`}
-    ${loiUpcoming(g)?`<div class="l2" style="color:var(--acc);font-weight:600">LOI ${dShort(g.cycle.letter_of_intent_deadline)}</div>`:''}${status}</td>
-  <td>${g.application.estimated_hours??'—'} hrs</td>
+  <td>${!g.cycle.deadline&&g.status!=='closed'?timingCell(g):g.status==='closed'?`<div>${dShort(g.cycle.deadline)}</div><span class="pill" style="margin-top:3px">Closed</span>`:`<div>${dShort(g.cycle.deadline)}</div>${n!==null&&n>=0?`<span class="pill ${urg(n)||'ok'}" style="margin-top:3px">${left(n)}</span>`:''}`}
+    ${loiUpcoming(g)?`<div class="l2" style="color:var(--acc);font-weight:600">LOI ${dShort(g.cycle.letter_of_intent_deadline)}</div>`:''}</td>
 </tr>`;
 }
 
@@ -397,7 +392,7 @@ function renderPanel(){
     ${g.cycle.cycle_notes?`<p class="cyclenote"><span aria-hidden="true">ⓘ</span>${esc(g.cycle.cycle_notes)}</p>`:''}
     ${g.workflow.pipeline_stage==='qualified'&&reminderOn(g)&&!isDismissed(g)?`<p class="remind" role="status"><span aria-hidden="true">🔔</span>Reminder set for <b>${dShort(reminderOn(g))}</b>. Aim to apply by ${dShort(applyBy(g))}, a week before the ${dShort(g.cycle.deadline)} deadline.</p>`:''}
     <div class="ptabs" role="tablist" aria-label="Grant detail sections">
-      ${[['overview','Overview',''],['app','Application',`<span class="cnt">${g.application.estimated_hours??'?'} hrs</span>`],['notes','Notes & Activity',g.workflow.internal_notes?'<span class="cnt">1</span>':''],['responses','Core Data','']].map(([id,l,b])=>`<button type="button" role="tab" id="pt-${id}" aria-selected="${st.ptab===id}" class="${st.ptab===id?'on':''}" data-ptab="${id}">${l}${b}</button>`).join('')}
+      ${[['overview','Overview',''],['app','Application',g.application.estimated_hours?`<span class="cnt">${g.application.estimated_hours} hrs</span>`:''],['notes','Notes & Activity',g.workflow.internal_notes?'<span class="cnt">1</span>':''],['responses','Core Data','']].map(([id,l,b])=>`<button type="button" role="tab" id="pt-${id}" aria-selected="${st.ptab===id}" class="${st.ptab===id?'on':''}" data-ptab="${id}">${l}${b}</button>`).join('')}
     </div>
   </div>
   <div class="p-body" role="tabpanel" aria-labelledby="pt-${st.ptab}">${({overview,app:application,notes,responses})[st.ptab](g)}</div>
@@ -411,12 +406,12 @@ function renderPanel(){
 }
 
 function statsHTML(g){
-  const a=g.analysis,n=days(g.cycle.deadline),comp=COMP[a.competitiveness_band];
-  return `<div class="card stats">
-    <div class="stat"><div class="k">Recommended ask ${tip('ask')}</div><div class="v">${usd(g.funding.recommended_request_usd)}</div><div class="h">Range ${range(g.funding.minimum_award,g.funding.maximum_award)}</div></div>
-    <div class="stat"><div class="k">Application due</div><div class="v">${dShort(g.cycle.deadline)}</div><div class="h">${g.status==='closed'?'Closed':n!==null&&n>=0?`<span class="pill ${urg(n)||'ok'}">${left(n)}</span>`:''}${loiUpcoming(g)?` · LOI ${dShort(g.cycle.letter_of_intent_deadline)}`:''}${applyBy(g)&&days(g.cycle.deadline)>=0?`<div class="applyby">Apply by ${dShort(applyBy(g))} ${tip('applyby')}</div>`:''}</div></div>
-    <div class="stat"><div class="k">Strategic fit ${tip('fit')}</div><div class="v">${a.strategic_fit_percent??'—'}%</div><div class="h">Priority score ${a.priority_score??'—'} / 100</div></div>
-    <div class="stat"><div class="k">Competitiveness ${tip('comp')}</div><div class="v"><span class="dots" aria-hidden="true">${[1,2,3].map(i=>`<i class="${i<=comp[1]?'on':''}"></i>`).join('')}</span>${comp[0]}</div><div class="h">Win chance ${a.win_probability_percent!=null?a.win_probability_percent+'%':'not estimated yet'}</div></div>
+  const a=g.analysis,n=days(g.cycle.deadline);
+  const award=hasRange(g)?range(g.funding.minimum_award,g.funding.maximum_award):'Not stated';
+  return `<div class="card stats s3">
+    <div class="stat"><div class="k">Award ${g.funding.recommended_request_usd?tip('ask'):''}</div><div class="v">${award}</div><div class="h">${g.funding.recommended_request_usd?`Suggested ask ${usd(g.funding.recommended_request_usd)}`:(awardWords(g)?esc(trunc(awardWords(g),80)):'')}</div></div>
+    ${g.cycle.deadline?`<div class="stat"><div class="k">Application due</div><div class="v">${dShort(g.cycle.deadline)}</div><div class="h">${g.status==='closed'?'Closed':n!==null&&n>=0?`<span class="pill ${urg(n)||'ok'}">${left(n)}</span>`:''}${loiUpcoming(g)?` · LOI ${dShort(g.cycle.letter_of_intent_deadline)}`:''}${applyBy(g)&&days(g.cycle.deadline)>=0?`<div class="applyby">Apply by ${dShort(applyBy(g))} ${tip('applyby')}</div>`:''}</div></div>`:`<div class="stat"><div class="k">Status</div><div class="v sm">${STATUS[g.status]||'Needs verification'}</div><div class="h">${esc(trunc(g.cycle.cycle_notes||'No deadline listed yet',90))}</div></div>`}
+    <div class="stat"><div class="k">Strategic fit ${tip('fit')}</div><div class="v">${a.strategic_fit_percent!=null?a.strategic_fit_percent+'%':'Not scored'}</div><div class="h">${a.priority_score!=null?`Priority score ${a.priority_score} / 100`:'Not read yet'}</div></div>
   </div>`;
 }
 
@@ -431,31 +426,32 @@ function overview(g){
   return `
   ${statsHTML(g)}
   ${g.official_url||g.application_url?`<div class="quicklinks">${g.official_url?`<a class="ql" href="${esc(g.official_url)}" target="_blank" rel="noopener">${ico('building')}<span><b>Funder Page</b><small>Learn about ${esc(clean(g.funder))}</small></span><i aria-hidden="true">↗</i></a>`:''}${g.application_url?`<a class="ql primary" href="${esc(g.application_url)}" target="_blank" rel="noopener">${ico('layers')}<span><b>Application Portal</b><small>Where you submit the application</small></span><i aria-hidden="true">↗</i></a>`:''}</div>`:''}
-  <div class="card"><h3>Key dates</h3>
+  ${ev.length>1?`<div class="card"><h3>Key dates</h3>
     <div class="timeline">${ev.map((x,i)=>`<div class="tstep ${x[2]?'today':i===nextI?'next':x[1]<TODAY?'past':''}"><div class="dot"></div><div class="tl">${x[0]}</div><div class="td">${x[2]?dShort(x[1]):dLong(x[1])}</div></div>`).join('')}</div>
-  </div>
+  </div>`:''}
   <div class="card"><h3>About this grant</h3>
     <div class="about">
       <div class="ai"><span class="aic">${ico('building')}</span><div><div class="ak">Funder</div><div class="av">${g.official_url?`<a href="${esc(g.official_url)}" target="_blank" rel="noopener">${esc(clean(g.funder))} ↗</a>`:esc(clean(g.funder))}</div></div></div>
       <div class="ai"><span class="aic">${ico('tag')}</span><div><div class="ak">Grant type</div><div class="av">${esc(g.dashboard.category||'—')}</div></div></div>
       <div class="ai"><span class="aic">${ico('pin')}</span><div><div class="ak">Where</div><div class="av">${esc(g.dashboard.geographic_scope||'')}</div>${sc.eligible_cities.length?`<div class="l2">${esc(sc.eligible_cities.join(', '))}</div>`:''}</div></div>
-      <div class="ai"><span class="aic">${ico('users')}</span><div><div class="ak">Who it serves</div><div class="av">${sc.target_populations.map(cap).map(esc).join(', ')||'—'}</div></div></div>
-      <div class="ai"><span class="aic">${ico('dollar')}</span><div><div class="ak">Award pool ${tip('pool')}</div><div class="av">${f.number_of_awards??'?'} awards from ${usd(f.total_program_funding)}</div><div class="l2">Each ${range(f.minimum_award,f.maximum_award)}${f.typical_award?`, typically ${k$(f.typical_award)}`:''}</div></div></div>
-      <div class="ai"><span class="aic">${ico('scale')}</span><div><div class="ak">Cash match ${tip('match')}</div><div class="av">${f.matching_funds_required?`${f.matching_percentage??'?'}% required`:'Not required'}</div>${match?`<div class="l2">${usd(match)} on our ask</div>`:''}</div></div>
-      <div class="ai"><span class="aic">${ico('layers')}</span><div><div class="ak">Funds program types</div><div class="av">${esc(sc.eligible_program_types.join(', ')||'—')}</div></div></div>
-      <div class="ai"><span class="aic">${ico('target')}</span><div><div class="ak">Focus areas</div><div class="tags" style="margin-top:4px">${sc.topics.map(t=>`<span class="tagx">${esc(cap(t))}</span>`).join('')}</div></div></div>
+      ${sc.target_populations.length?`<div class="ai"><span class="aic">${ico('users')}</span><div><div class="ak">Who it serves</div><div class="av">${sc.target_populations.map(cap).map(esc).join(', ')||'—'}</div></div></div>`:''}
+      ${(f.number_of_awards!=null||f.total_program_funding!=null||hasRange(g))?`<div class="ai"><span class="aic">${ico('dollar')}</span><div><div class="ak">Award pool ${tip('pool')}</div><div class="av">${f.number_of_awards??'?'} awards from ${usd(f.total_program_funding)}</div><div class="l2">Each ${range(f.minimum_award,f.maximum_award)}${f.typical_award?`, typically ${k$(f.typical_award)}`:''}</div></div></div>`:''}
+      ${f.matching_funds_required!=null?`<div class="ai"><span class="aic">${ico('scale')}</span><div><div class="ak">Cash match ${tip('match')}</div><div class="av">${f.matching_funds_required?`${f.matching_percentage??'?'}% required`:'Not required'}</div>${match?`<div class="l2">${usd(match)} on our ask</div>`:''}</div></div>`:''}
+      ${sc.eligible_program_types.length?`<div class="ai"><span class="aic">${ico('layers')}</span><div><div class="ak">Funds program types</div><div class="av">${esc(sc.eligible_program_types.join(', ')||'—')}</div></div></div>`:''}
+      ${sc.topics.length?`<div class="ai"><span class="aic">${ico('target')}</span><div><div class="ak">Focus areas</div><div class="tags" style="margin-top:4px">${sc.topics.map(t=>`<span class="tagx">${esc(cap(t))}</span>`).join('')}</div></div></div>`:''}
     </div>
     <div class="linkrow">${link(g.official_url,'Funder Page')}${link(g.source_urls[0],'Guidelines')}${link(g.application_url,'Application Portal')}</div>
   </div>
-  <div class="card"><h3>To apply<button type="button" class="linkbtn aside" data-ptab="app">Application Details →</button></h3>
+  ${(ap.estimated_hours||ap.required_attachments.length||ap.prerequisites.length||ap.letter_of_intent_required!=null)?`<div class="card"><h3>To apply<button type="button" class="linkbtn aside" data-ptab="app">Application Details →</button></h3>
     <div class="applysum">
       <div><b>~${ap.estimated_hours??'?'} hrs</b><span>${cap(ap.application_complexity)} effort</span></div>
       <div><b>${ap.letter_of_intent_required?'LOI required':'No LOI'} ${tip('loi')}</b><span>${g.cycle.letter_of_intent_deadline?'Due '+dShort(g.cycle.letter_of_intent_deadline):'Go straight to proposal'}</span></div>
       <div><b>${ap.required_attachments.length} documents</b><span>${ap.required_attachments.length?'To attach':'None listed'}</span></div>
       <div><b>${ap.prerequisites.length} prerequisite${ap.prerequisites.length===1?'':'s'} ${tip('prereq')}</b><span>${esc(ap.prerequisites[0]||'None')}</span></div>
     </div>
-  </div>
-  <div class="card"><h3>Eligibility<span class="aside">${rc.mandPass} of ${rc.mand} required met${rc.unk?` · <span style="color:var(--warn)">${rc.unk} to verify</span>`:''}${rc.fail?` · <span style="color:var(--bad)">${rc.fail} not met</span>`:''}</span></h3>
+  </div>`:''}
+  <div class="card"><h3>Requirements<span class="aside">${rc.mand?`${rc.mandPass} of ${rc.mand} required met`:''}${rc.unk?` · <span style="color:var(--warn)">${rc.unk} to verify</span>`:''}${rc.fail?` · <span style="color:var(--bad)">${rc.fail} not met</span>`:''}</span></h3>
+    ${reqs.length?'':`<p class="prose" style="margin:0">We couldn’t read this funder’s rules automatically. ${g.official_url?`<a href="${esc(g.official_url)}" target="_blank" rel="noopener">Open the funder’s page</a> to check what they require.`:''}</p>`}
     ${reqs.map(r=>{const d=DET[r.determination];return `<details class="req" ${r.determination!=='pass'?'open':''}>
       <summary><span class="ic ${d.c}" style="width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;flex:none">${d.i}</span><div style="min-width:0;flex:1"><div class="rt">${esc(r.requirement)}</div><div class="rr">${esc(r.reason)}</div></div>
         <span class="rmeta"><span class="pill ${d.c}">${d.t}</span>${r.mandatory?'':'<span class="pill">Preferred</span>'}<span class="chev" aria-hidden="true">›</span></span></summary>
@@ -463,7 +459,7 @@ function overview(g){
         <div><div class="eh">Tech-Moms evidence</div>${esc(r.techmoms_evidence||'No evidence on file yet.')}</div></div>
     </details>`}).join('')}
   </div>
-  <div class="card"><h3>What the money can pay for ${tip('payfor')}<span class="pill ${hasOther(g)?'acc':''}">${hasOther(g)?'Program + other costs':'Program costs only'}</span><span class="aside">Overhead ${f.overhead_allowed===false?'not allowed':f.indirect_cost_rate_cap_percent!=null?`capped at ${f.indirect_cost_rate_cap_percent}%`:'unspecified'}</span></h3>
+  ${(f.allowed_costs.length||f.excluded_costs.length||f.overhead_allowed!=null||f.indirect_cost_rate_cap_percent!=null)?`<div class="card"><h3>What the money can pay for ${tip('payfor')}<span class="pill ${hasOther(g)?'acc':''}">${hasOther(g)?'Program + other costs':'Program costs only'}</span><span class="aside">Overhead ${f.overhead_allowed===false?'not allowed':f.indirect_cost_rate_cap_percent!=null?`capped at ${f.indirect_cost_rate_cap_percent}%`:'unspecified'}</span></h3>
     <div class="usetags">${USES.map(([id,l])=>`<span class="usetag ${uses.has(id)?'on':''}">${uses.has(id)?'✓':'–'} ${l}</span>`).join('')}</div>
     <div class="two" style="margin-top:14px">
       <div><div class="lbl">Allowed</div><ul class="list">${f.allowed_costs.map(c=>`<li><span class="ic good">✓</span><span>${esc(c)}</span></li>`).join('')||'<li>Unspecified</li>'}</ul></div>
@@ -471,7 +467,7 @@ function overview(g){
     </div>
     ${f.overhead_restrictions?`<p class="l2" style="margin:12px 0 0">${esc(f.overhead_restrictions)}</p>`:''}
     ${f.recommendation_basis?`<div class="lbl">Why we’d ask for ${usd(f.recommended_request_usd)}</div><p class="prose" style="margin:0">${esc(f.recommendation_basis)}</p>`:''}
-  </div>
+  </div>`:(f.recommendation_basis?`<div class="card"><h3>About the amount</h3><p class="prose" style="margin:0">${esc(f.recommendation_basis)}</p></div>`:'')}
   <div class="card"><h3>Why Tech-Moms fits</h3>
     ${a.strategic_fit_rationale?`<p class="prose">${esc(a.strategic_fit_rationale)}</p>`:''}
     ${a.matched_program_ids.length?`<div class="tags" style="margin-bottom:4px">${a.matched_program_ids.map(p=>`<span class="tagx prog">${PROGRAMS[p]||p}</span>`).join('')}</div>`:''}
@@ -489,23 +485,23 @@ function application(g){
   if(att.length)steps.push([`Prepare ${att.length} required document${att.length===1?'':'s'}`,'Checklist below']);
   steps.push([`Submit through ${esc(ap.submission_method||'the funder’s portal')}`,g.cycle.deadline?`Due ${dLong(g.cycle.deadline)} · ${esc(sentence(g.cycle.deadline_type))}`:'']);
   return `
-  <div class="card stats">
-    <div class="stat"><div class="k">Time to apply</div><div class="v">~${ap.estimated_hours??'—'} hrs</div><div class="h">${cap(ap.application_complexity)} complexity</div></div>
-    <div class="stat"><div class="k">Letter of intent ${tip('loi')}</div><div class="v">${ap.letter_of_intent_required?'Required':'Not required'}</div><div class="h">${g.cycle.letter_of_intent_deadline?'Due '+dLong(g.cycle.letter_of_intent_deadline):'&nbsp;'}</div></div>
-    <div class="stat"><div class="k">Submit via</div><div class="v sm">${esc(ap.submission_method||'Unspecified')}</div></div>
-    <div class="stat"><div class="k">Deadline ${tip('deadline_type')}</div><div class="v">${dShort(g.cycle.deadline)}</div><div class="h">${esc(sentence(g.cycle.deadline_type))}</div></div>
-  </div>
+  ${(()=>{const st2=[];
+    if(ap.estimated_hours)st2.push(`<div class="stat"><div class="k">Time to apply</div><div class="v">~${ap.estimated_hours} hrs</div><div class="h">${cap(ap.application_complexity)} complexity</div></div>`);
+    if(ap.letter_of_intent_required!=null)st2.push(`<div class="stat"><div class="k">Letter of intent ${tip('loi')}</div><div class="v">${ap.letter_of_intent_required?'Required':'Not required'}</div><div class="h">${g.cycle.letter_of_intent_deadline?'Due '+dLong(g.cycle.letter_of_intent_deadline):'&nbsp;'}</div></div>`);
+    if(ap.submission_method)st2.push(`<div class="stat"><div class="k">Submit via</div><div class="v sm">${esc(ap.submission_method)}</div></div>`);
+    if(g.cycle.deadline)st2.push(`<div class="stat"><div class="k">Deadline ${tip('deadline_type')}</div><div class="v">${dShort(g.cycle.deadline)}</div><div class="h">${esc(sentence(g.cycle.deadline_type))}</div></div>`);
+    return st2.length?`<div class="card stats" style="grid-template-columns:repeat(${st2.length},1fr)">${st2.join('')}</div>`:''})()}
   <div class="card"><h3>Steps to apply</h3>
     <ol class="steps">${steps.map(([t,s])=>`<li><div><b>${t}</b>${s?`<span>${s}</span>`:''}</div></li>`).join('')}</ol>
   </div>
   <div class="two">
-    <div class="card"><h3>Documents to submit<span class="aside">${[...g._att].length} of ${att.length} ready</span></h3>${att.length?att.map((x,i)=>`<label class="check ${g._att.has(i)?'done':''}"><input type="checkbox" id="a-${i}" data-att="${i}" ${g._att.has(i)?'checked':''}><span>${esc(x)}</span></label>`).join(''):'<p class="prose" style="margin:0">None listed</p>'}</div>
+    ${att.length?`<div class="card"><h3>Documents to submit<span class="aside">${[...g._att].length} of ${att.length} ready</span></h3>${att.length?att.map((x,i)=>`<label class="check ${g._att.has(i)?'done':''}"><input type="checkbox" id="a-${i}" data-att="${i}" ${g._att.has(i)?'checked':''}><span>${esc(x)}</span></label>`).join(''):'<p class="prose" style="margin:0">None listed</p>'}</div>`:''}
     <div class="card"><h3>Questions to answer first<span class="aside">${[...g._qs].length} of ${qs.length} answered</span></h3>${qs.length?qs.map((q,i)=>`<label class="check ${g._qs.has(i)?'done':''}"><input type="checkbox" id="q-${i}" data-q="${i}" ${g._qs.has(i)?'checked':''}><span>${esc(q)}</span></label>`).join(''):'<p class="prose" style="margin:0">No open questions</p>'}</div>
   </div>
-  <div class="card"><h3>What the application asks for</h3>
+  ${(ap.hours_estimate_basis||ap.application_instructions_url||g.application_url)?`<div class="card"><h3>What the application asks for</h3>
     ${ap.hours_estimate_basis?`<p class="prose">${esc(ap.hours_estimate_basis)}</p>`:''}
     <div class="linkrow">${link(ap.application_instructions_url,'Application Instructions')}${link(g.application_url,'Application Portal')}</div>
-  </div>`;
+  </div>`:''}`;
 }
 
 function notes(g){
